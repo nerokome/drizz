@@ -12,7 +12,7 @@ export const register = async (req: Request, res: Response) => {
   if (!username || !email || !password) return sendError(res, "Missing fields", 400);
 
   try {
-    // Check if user exists
+   
     const [existingUser] = await db
       .select()
       .from(users)
@@ -21,10 +21,10 @@ export const register = async (req: Request, res: Response) => {
 
     if (existingUser) return sendError(res, "User already exists", 400);
 
-    // Hash password
+    
     const hashedPassword = await hashPassword(password);
 
-    // Insert new user
+    
     const [newUser] = await db
       .insert(users)
       .values({
@@ -34,7 +34,7 @@ export const register = async (req: Request, res: Response) => {
       })
       .returning();
 
-    // Generate JWT token
+    
     const token = signToken({ userId: newUser.id });
 
     return sendSuccess(res, { user: newUser, token }, "User registered successfully");
