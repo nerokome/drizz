@@ -11,6 +11,8 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   const decoded = verifyToken(token);
   if (!decoded) return sendError(res, "Invalid token", 401);
 
-  (req as any).userId = decoded.userId;
+  // ✅ TypeScript now knows userId exists
+  req.userId = decoded.userId;
+
   next();
 };

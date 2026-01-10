@@ -4,15 +4,14 @@ import { users } from "../db/schema";
 import { hashPassword, comparePassword } from "../utils/hash";
 import { signToken } from "../utils/jwt";
 import { sendSuccess, sendError } from "../utils/response";
-import { eq } from "drizzle-orm";
+import { eq, ne } from "drizzle-orm";
+
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
-
   if (!username || !email || !password) return sendError(res, "Missing fields", 400);
 
   try {
-   
     const [existingUser] = await db
       .select()
       .from(users)
@@ -21,20 +20,13 @@ export const register = async (req: Request, res: Response) => {
 
     if (existingUser) return sendError(res, "User already exists", 400);
 
-    
     const hashedPassword = await hashPassword(password);
 
-    
     const [newUser] = await db
       .insert(users)
-      .values({
-        username,
-        email,
-        password: hashedPassword,
-      })
+      .values({ username, email, password: hashedPassword })
       .returning();
 
-    
     const token = signToken({ userId: newUser.id });
 
     return sendSuccess(res, { user: newUser, token }, "User registered successfully");
@@ -43,6 +35,7 @@ export const register = async (req: Request, res: Response) => {
     return sendError(res);
   }
 };
+
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -69,22 +62,24 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getProfile = async (req: Request, res: Response) => {
-  const userId = (req as any).userId;
-  if (!userId) return sendError(res, "Unauthorized", 401);
 
+export const getUsers = async (req: Request, res: Response) => {
   try {
-    const [user] = await db
-      .select()
+    const currentUserId = req.userId;
+    if (!currentUserId) return sendError(res, "Unauthorized", 401); 
+
+    const allUsers = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+      })
       .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+      .where(ne(users.id, currentUserId)); 
 
-    if (!user) return sendError(res, "User not found", 404);
-
-    return sendSuccess(res, user, "User profile fetched");
+    return sendSuccess(res, allUsers, "Users fetched successfully");
   } catch (err) {
-    console.error("Profile error:", err);
+    console.error("Get users error:", err);
     return sendError(res);
   }
 };
