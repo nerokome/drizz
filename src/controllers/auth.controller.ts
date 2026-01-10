@@ -83,3 +83,12 @@ export const getUsers = async (req: Request, res: Response) => {
     return sendError(res);
   }
 };
+export const logout = async (req: Request, res: Response) => {
+  try {
+    // Optionally, you could implement token blacklisting here in the future
+    return sendSuccess(res, null, "Logged out successfully");
+  } catch (err) {
+    console.error("Logout error:", err);
+    return sendError(res);
+  }
+};
