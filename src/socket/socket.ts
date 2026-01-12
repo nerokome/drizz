@@ -3,14 +3,13 @@ import { socketAuth } from "./auth";
 import { registerChatEvents } from "./chat";
 
 export const initSocket = (httpServer: any) => {
-  const io = new Server(httpServer, {
-    cors: {
-      origin: ["http://localhost:3000"],
-      methods: ["GET", "POST"],
-    },
-  });
+ const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
-  // 🔐 AUTH MIDDLEWARE
   io.use(socketAuth);
 
   io.on("connection", (socket: Socket) => {
