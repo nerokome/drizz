@@ -10,20 +10,23 @@ export const initSocket = (httpServer: any) => {
     },
   });
 
-  
+  // 🔐 AUTH MIDDLEWARE
   io.use(socketAuth);
 
   io.on("connection", (socket: Socket) => {
+    const user = socket.data.user;
+
     console.log(
-      `User connected: ${socket.id}, User ID: ${socket.user?.id}`
+      `User connected: socket=${socket.id}, userId=${user.id}`
     );
 
-    socket.joinedChats = new Set();
-
+    // Register chat-related events
     registerChatEvents(io, socket);
 
     socket.on("disconnect", () => {
-      console.log(`User disconnected: ${socket.id}, User ID: ${socket.user?.id}`);
+      console.log(
+        `User disconnected: socket=${socket.id}, userId=${user.id}`
+      );
     });
   });
 
