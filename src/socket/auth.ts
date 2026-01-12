@@ -10,20 +10,15 @@ export const socketAuth = (socket: Socket, next: (err?: Error) => void) => {
   const token = socket.handshake.auth?.token;
 
   if (!token) {
-    return next(new Error("Unauthorized: Token missing"));
+    return next(new Error("TOKEN_MISSING"));
   }
 
   try {
-    const payload = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as JwtPayload;
-
-    // Attach authenticated user to socket
-    (socket as any).user = payload;
-
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    (socket as any).user = payload; 
     next();
-  } catch (err) {
-    return next(new Error("Unauthorized: Invalid token"));
+  } catch (err: any) {
+    if (err.name === "TokenExpiredError") return next(new Error("TOKEN_EXPIRED"));
+    return next(new Error("TOKEN_INVALID"));
   }
 };
